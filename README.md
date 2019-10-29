@@ -1,5 +1,4 @@
-# CaNet
-Codes for paper "CANet: Class-Agnostic Segmentation Networks with Iterative Refinement and Attentive Few-Shot Learning".
-Source codes will be released during the conference.
+# CaNet_OL
+CaNet_OL is based on codes for paper "CANet: Class-Agnostic Segmentation Networks with Iterative Refinement and Attentive Few-Shot Learning".[CaNet](https://github.com/icoz69/CaNet)
 
-Training and data preparation scripts are coming soon.
+The codes is work in progress
