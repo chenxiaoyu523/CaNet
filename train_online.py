@@ -62,7 +62,7 @@ input_size = (321, 321)
 weight_decay = 0.0005
 momentum = 0.9
 power = 0.9
-online_iter = 100
+online_iter = 0
 
 input_size = (321, 321)
 cudnn.enabled = True
@@ -133,16 +133,19 @@ for i_iter, batch in enumerate(valloader):
         optimizer.zero_grad()
 
         pred = us_forward(query_rgb, support_rgb, support_mask, history_mask, index, model)
-        _, pred_label = torch.max(pred, 1)
+        pred_soft = torch.softmax(pred, 1)
 
         history_mask=torch.zeros(1,2,41,41).fill_(0.0)
         valset.history_mask_list = [None] * 451
 
-        pred_inv = us_forward(support_rgb, query_rgb, pred_label.float().unsqueeze(0), history_mask, index, model)
+        loss_mid = loss_calc_v1(pred, query_mask.squeeze(1), 0)
+
+        pred_inv = us_forward(support_rgb, query_rgb, pred_soft[:,1:,:,:].repeat(1,256,1,1), history_mask, index, model)
 
         loss = loss_calc_v1(pred_inv, support_mask.squeeze(1), 0)
         loss.backward()
         optimizer.step()
+        print(loss_mid.item(), loss.item())
 
         history_mask=torch.zeros(1,2,41,41).fill_(0.0)
         valset.history_mask_list = [None] * 451
@@ -156,6 +159,9 @@ for i_iter, batch in enumerate(valloader):
     for j in range(query_mask.shape[0]):#batch size
         all_inter[sample_class[j] - (options.fold * 5 + 1)] += inter_list[j]
         all_union[sample_class[j] - (options.fold * 5 + 1)] += union_list[j]
+
+    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_c.jpg'), (query.squeeze().numpy())[:,:,::-1])
+    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_n.jpg'), pred_label.squeeze().data.cpu().numpy()*255)
 
 IOU = all_inter.sum() / all_union.sum()
 print(IOU)
