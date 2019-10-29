@@ -12,7 +12,7 @@ from dataset_mask_train import Dataset as Dataset_train
 from dataset_mask_val import Dataset as Dataset_val
 import os
 import torch
-from network import Res_Deeplab
+from one_shot_network import Res_Deeplab
 import torch.nn as nn
 import numpy as np
 
@@ -54,7 +54,7 @@ parser.add_argument('-fold',
 parser.add_argument('-gpu',
                     type=str,
                     help='gpu id to use',
-                    default='0,1')
+                    default='0')
 
 
 
@@ -100,7 +100,7 @@ cudnn.enabled = True
 model = Res_Deeplab(num_classes=num_class)
 #load resnet-50 preatrained parameter
 model = load_resnet50_param(model, stop_layer='layer4')
-model=nn.DataParallel(model,[0,1])
+model=nn.DataParallel(model)
 
 # disable the  gradients of not optomized layers
 turn_off(model)

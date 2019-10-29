@@ -24,23 +24,25 @@ class Dataset(object):
         self.chosen_data_list_1 = self.get_new_exist_class_dict(fold=fold)
         chosen_data_list_2 = self.chosen_data_list_1[:]
         chosen_data_list_3 = self.chosen_data_list_1[:]
-        random.shuffle(chosen_data_list_2)
-        random.shuffle(chosen_data_list_3)
+        #random.shuffle(chosen_data_list_2)
+        #random.shuffle(chosen_data_list_3)
         self.chosen_data_list=self.chosen_data_list_1+chosen_data_list_2+chosen_data_list_3
-        self.chosen_data_list=self.chosen_data_list[:1000]
+        self.chosen_data_list=self.chosen_data_list[:451]
 
 
         self.binary_pair_list = self.get_binary_pair_list()#a dict of each class, which contains all imgs that include this class
-        self.history_mask_list = [None] * 1000
-        self.query_class_support_list=[None] * 1000
-        for index in range (1000):
+        self.history_mask_list = [None] * 451
+        self.query_class_support_list=[None] * 451
+        for index in range (451):
             query_name=self.chosen_data_list[index][0]
             sample_class=self.chosen_data_list[index][1]
             support_img_list = self.binary_pair_list[sample_class]  # all img that contain the sample_class
+            ind = 0
             while True:  # random sample a support data
-                support_name = support_img_list[random.randint(0, len(support_img_list) - 1)]
+                support_name = support_img_list[ind]
                 if support_name != query_name:
                     break
+                ind = ind+1
             self.query_class_support_list[index]=[query_name,sample_class,support_name]
 
 
@@ -93,10 +95,10 @@ class Dataset(object):
 
         input_size = self.input_size[0]
         # random scale and crop for support
-        scaled_size = int(random.uniform(1,1.5)*input_size)
+        scaled_size = input_size#int(random.uniform(1,1.5)*input_size)
         scale_transform_mask = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.NEAREST)
         scale_transform_rgb = torchvision.transforms.Resize([scaled_size, scaled_size], interpolation=Image.BILINEAR)
-        flip_flag = random.random()
+        flip_flag = 0#random.random()
         support_rgb = self.normalize(
             self.ToTensor(
                 scale_transform_rgb(
@@ -111,8 +113,8 @@ class Dataset(object):
                               os.path.join(self.data_dir, 'Binary_map_aug', 'val', str(sample_class),
                                            support_name + '.png')))))
 
-        margin_h = random.randint(0, scaled_size - input_size)
-        margin_w = random.randint(0, scaled_size - input_size)
+        margin_h = 0#random.randint(0, scaled_size - input_size)
+        margin_w = 0#random.randint(0, scaled_size - input_size)
 
         support_rgb = support_rgb[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
         support_mask = support_mask[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
@@ -131,6 +133,9 @@ class Dataset(object):
                               Image.open(
                                   os.path.join(self.data_dir, 'JPEGImages', query_name + '.jpg'))))))
 
+        query = np.array(scale_transform_rgb(
+                Image.open(os.path.join(self.data_dir, 'JPEGImages', query_name + '.jpg'))))
+
         query_mask = self.ToTensor(
             scale_transform_mask(
                 self.flip(flip_flag,
@@ -138,8 +143,8 @@ class Dataset(object):
                               os.path.join(self.data_dir, 'Binary_map_aug', 'val', str(sample_class),
                                            query_name + '.png')))))
 
-        margin_h = random.randint(0, scaled_size - input_size)
-        margin_w = random.randint(0, scaled_size - input_size)
+        margin_h = 0#random.randint(0, scaled_size - input_size)
+        margin_w = 0#random.randint(0, scaled_size - input_size)
 
         query_rgb = query_rgb[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
         query_mask = query_mask[:, margin_h:margin_h + input_size, margin_w:margin_w + input_size]
@@ -154,7 +159,7 @@ class Dataset(object):
 
 
 
-        return query_rgb, query_mask, support_rgb, support_mask,history_mask,sample_class,index
+        return query_rgb, query_mask, support_rgb, support_mask,history_mask,sample_class,index,query
 
     def flip(self, flag, img):
         if flag > 0.5:
@@ -163,4 +168,4 @@ class Dataset(object):
             return img
 
     def __len__(self):
-        return 1000
+        return 451
