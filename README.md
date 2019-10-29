@@ -2,4 +2,4 @@
 Codes for paper "CANet: Class-Agnostic Segmentation Networks with Iterative Refinement and Attentive Few-Shot Learning".
 Source codes will be released during the conference.
 
-Training and data preparation scripts are coming soon.
+The codes are used for tracking and now are working in progress.
