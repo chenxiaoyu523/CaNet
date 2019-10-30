@@ -7,7 +7,7 @@ The codes are used for tracking and now are working in progress.
 ### demo
 
 ``` python
-python training_online.py
+python tracking_online.py
 ```
 
 
