@@ -24,7 +24,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-lr',
                     type=float,
                     help='learning rate',
-                    default=0.00005)
+                    default=0.0001)
 
 parser.add_argument('-fold',
                     type=str,
@@ -62,7 +62,7 @@ input_size = (321, 321)
 weight_decay = 0.0005
 momentum = 0.9
 power = 0.9
-online_iter = 0
+online_iter = 200
 
 input_size = (321, 321)
 cudnn.enabled = True
@@ -112,7 +112,7 @@ def us_forward(query_rgb, support_rgb, support_mask, history_mask, index, model)
 t_start = time.time()
 
 for i_iter, batch in enumerate(valloader):
-    model.load_state_dict(torch.load(model_path), strict=False)
+    model.load_state_dict(torch.load(model_path))
     query_rgb, query_mask, support_rgb, support_mask, history_mask, index, query = batch
     '''
     plt.figure()
@@ -145,7 +145,7 @@ for i_iter, batch in enumerate(valloader):
         loss = loss_calc_v1(pred_inv, support_mask.squeeze(1), 0)
         loss.backward()
         optimizer.step()
-        print(loss_mid.item(), loss.item())
+        print(index[0].data.numpy(), n, loss_mid.item(), loss.item())
 
         history_mask=torch.zeros(1,2,41,41).fill_(0.0)
         valset.history_mask_list = [None] * len(valloader)
@@ -160,8 +160,10 @@ for i_iter, batch in enumerate(valloader):
         all_inter += inter_list[j]
         all_union += union_list[j]
 
-    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_c.jpg'), (query.squeeze().numpy())[:,:,::-1])
-    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_n.jpg'), pred_label.squeeze().data.cpu().numpy()*255)
+    query = (query.squeeze().numpy())[:,:,::-1]
+    query[:,:,0] = query[:,:,0]*(1-pred_label.squeeze().data.cpu().numpy())
+    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_c.jpg'), query)
+    cv2.imwrite(os.path.join(checkpoint_dir, 'pred_img', str(index[0].data.numpy()) + '_n.jpg'), pred.squeeze()[1].data.cpu().numpy()*255)
 
 IOU = all_inter / all_union
 print(IOU)
